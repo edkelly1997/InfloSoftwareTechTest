@@ -4,7 +4,6 @@ using UserManagement.Web.Models.Users;
 
 namespace UserManagement.WebMS.Controllers;
 
-[Route("users")]
 public class UsersController : Controller
 {
     private readonly IUserService _userService;
@@ -46,5 +45,31 @@ public class UsersController : Controller
         };
 
         return View(model);
+    }
+
+    [HttpGet]
+    public IActionResult AddEditUser(long id)
+    {
+        UserListItemViewModel user = new UserListItemViewModel();
+
+        if (id != 0)
+        {
+            var existingUser = _userService.GetById(id).FirstOrDefault();
+            if (existingUser == null)
+            {
+                return NotFound();
+            }
+            user = new UserListItemViewModel
+            {
+                Id = existingUser.Id,
+                Forename = existingUser.Forename,
+                Surname = existingUser.Surname,
+                Email = existingUser.Email,
+                IsActive = existingUser.IsActive,
+                DateOfBirth = existingUser.DateOfBirth
+            };
+        }
+
+        return View(user);
     }
 }
