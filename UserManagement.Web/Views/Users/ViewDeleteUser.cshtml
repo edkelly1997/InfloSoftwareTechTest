@@ -1,0 +1,51 @@
+﻿@model UserManagement.Web.Models.Users.UserDetailsReadOnlyViewModel
+
+<h2>@(Model.IsDelete ? "Delete User" : "View User") </h2>
+
+<div>
+    <form asp-controller="Users" asp-action="DeleteUser" method="post">
+        <div class="row">
+            <div class="col-10">
+                <div class="border p-3">
+                    <input asp-for="@Model.Id" type="hidden" value="@Model.Id" />
+                    <div class="form-floating py-2 col-12">
+                        <input asp-for="@Model.Forename" disabled class="form-control border-0 shadow" value="@Model.Forename" />
+                        <label class="ms-2">Forename</label>
+                    </div>
+                    <div class="form-floating py-2 col-12">
+                        <input asp-for="@Model.Surname" disabled class="form-control border-0 shadow" value="@Model.Surname" />
+                        <label class="ms-2">Surname</label>
+                    </div>
+                    <div class="form-floating py-2 col-12">
+                        <input asp-for="@Model.DateOfBirth" disabled class="form-control border-0 shadow" value="@Model.DateOfBirth" />
+                        <label class="ms-2">Date Of Birth</label>
+                    </div>
+                    <div class="form-floating py-2 col-12">
+                        <input asp-for="@Model.Email" disabled class="form-control border-0 shadow" value="@Model.Email" />
+                        <label class="ms-2">Email</label>
+                    </div>
+                    <div class="form-floating py-2 col-12">
+                        <input asp-for="IsActive" disabled class="form-select border-0 shadow" value="@Model.IsActive">
+                        <label class="ms-2">Account Active</label>
+                    </div>
+                    <div class="row pt-2">
+                        @if (Model.IsDelete)
+                        {
+                            <div class="col-6 col-md-3">
+                                <button type="submit" class="btn btn-danger border form-control">
+                                    Delete
+                                </button>
+                            </div>
+                        }
+                        <div class="col-6 col-md-3">
+                            <a asp-controller="Users" asp-action="List" class="btn btn-outline-secondary border form-control">
+                                Return
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+

@@ -29,7 +29,7 @@
                         @item.Surname
                     </td>
                     <td>
-                        @item.DateOfBirth.ToString("dd/MM/yyyy")
+                        @item.DateOfBirth?.ToString("dd/MM/yyyy")
                     </td>
                     <td>
                         @item.Email
@@ -43,9 +43,9 @@
                                 Actions
                             </button>
                             <ul class="dropdown-menu" aria-labelledby="btnToggleActions">
-                                <li><a class="dropdown-item" href="#">View</a></li>
+                                <li><a asp-controller="Users" asp-action="ViewDeleteUser" asp-route-id="@item.Id" asp-route-isDelete="false" class="dropdown-item">View</a></li>
                                 <li><a asp-controller="Users" asp-action="AddEditUser" asp-route-id="@item.Id" class="dropdown-item" >Edit</a></li>
-                                <li><a class="dropdown-item" href="#">Delete</a></li>
+                                <li><a asp-controller="Users" asp-action="ViewDeleteUser" asp-route-id="@item.Id" asp-route-isDelete="true" class="dropdown-item">Delete</a></li>
                             </ul>
                         </div>
                     </td>
@@ -62,8 +62,6 @@
         <a asp-controller="Users" asp-action="List" asp-route-allUsers="false" asp-route-isActive="false" class="btn btn-default">Non Active</a>
     </div>
 
-    <a href="#" class="btn btn-primary float-end">
-        Add User
-    </a>
+    <a asp-controller="Users" asp-action="AddEditUser" asp-route-id="0" class="btn btn-primary float-end">Add User</a>
 </div>
 

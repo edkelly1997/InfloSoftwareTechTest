@@ -28,4 +28,22 @@ public class UserService : IUserService
     {
         return _dataAccess.GetAll<User>().Where(u => u.Id == id);
     }
+
+    public void Create(User user)
+    {
+        if (user == null) throw new ArgumentNullException(nameof(user));
+        _dataAccess.Create(user);
+    }
+
+    public void Update(User user)
+    {
+        if (user == null) throw new ArgumentNullException(nameof(user));
+        _dataAccess.Update(user);
+    }
+
+    public void Delete(User user)
+    {
+        if (user == null) throw new ArgumentNullException(nameof(user));
+        _dataAccess.Delete(user);
+    }
 }
