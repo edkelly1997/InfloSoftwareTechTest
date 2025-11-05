@@ -2,6 +2,7 @@ using UserManagement.Models;
 using UserManagement.Services.Domain.Interfaces;
 using UserManagement.Web.Models.Users;
 using UserManagement.WebMS.Controllers;
+using System.Linq;
 
 namespace UserManagement.Data.Tests;
 
@@ -23,22 +24,71 @@ public class UserControllerTests
             .Which.Items.Should().BeEquivalentTo(users);
     }
 
-    private User[] SetupUsers(string forename = "Johnny", string surname = "User", string email = "juser@example.com", bool isActive = true)
+    [Fact]
+    public void List_ActiveUsers_ModelMustContainOnlyActiveUsers()
     {
-        var users = new[]
+        var controller = CreateController();
+        var users = SetupUsers(allUsers: false, isActive: true);
+
+        var result = controller.List(allUsers: false, isActive: true);
+
+        result.Model
+            .Should().BeOfType<UserListViewModel>()
+            .Which.Items.Should().BeEquivalentTo(users);
+    }
+
+    [Fact]
+    public void List_InactiveUsers_ModelMustContainOnlyInactiveUsers()
+    {
+        var controller = CreateController();
+        var users = SetupUsers(allUsers: false, isActive: false);
+
+        var result = controller.List(allUsers: false, isActive: false);
+
+        result.Model
+            .Should().BeOfType<UserListViewModel>()
+            .Which.Items.Should().BeEquivalentTo(users);
+    }
+
+    private User[] SetupUsers(bool allUsers = true, bool isActive = true)
+    {
+
+        var ActiveUser = new[]
         {
             new User
             {
-                Forename = forename,
-                Surname = surname,
-                Email = email,
-                IsActive = isActive
+                Forename = "Johnny",
+                Surname = "User",
+                Email = "juser@example.com",
+                IsActive = true
             }
         };
 
-        _userService
-            .Setup(s => s.GetAll())
-            .Returns(users);
+        var InActiveUser = new[]
+        {
+            new User
+            {
+                Forename = "Fred",
+                Surname = "IsInactive",
+                Email = "fisinactive@test.com",
+                IsActive = false
+            }
+        };
+
+        User[] users = allUsers ? ActiveUser.Concat(InActiveUser).ToArray() : isActive ? ActiveUser : InActiveUser;
+
+        if (allUsers)
+        {
+            _userService
+                .Setup(s => s.GetAll())
+                .Returns(users);
+        }
+        else
+        {
+            _userService
+                .Setup(s => s.FilterByActive(isActive))
+                .Returns(users);
+        }
 
         return users;
     }
