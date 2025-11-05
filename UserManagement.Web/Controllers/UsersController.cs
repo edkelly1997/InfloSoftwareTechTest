@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Transactions;
+﻿using System.Linq;
 using UserManagement.Services.Domain.Interfaces;
 using UserManagement.Web.Models.Users;
 
@@ -25,7 +23,8 @@ public class UsersController : Controller
                 Forename = p.Forename,
                 Surname = p.Surname,
                 Email = p.Email,
-                IsActive = p.IsActive
+                IsActive = p.IsActive,
+                DateOfBirth = p.DateOfBirth
             });
         }
         else
@@ -36,7 +35,8 @@ public class UsersController : Controller
                 Forename = p.Forename,
                 Surname = p.Surname,
                 Email = p.Email,
-                IsActive = p.IsActive
+                IsActive = p.IsActive,
+                DateOfBirth = p.DateOfBirth
             });
         }
 

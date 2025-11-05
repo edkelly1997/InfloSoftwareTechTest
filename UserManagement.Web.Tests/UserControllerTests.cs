@@ -3,6 +3,7 @@ using UserManagement.Services.Domain.Interfaces;
 using UserManagement.Web.Models.Users;
 using UserManagement.WebMS.Controllers;
 using System.Linq;
+using System;
 
 namespace UserManagement.Data.Tests;
 
@@ -60,7 +61,8 @@ public class UserControllerTests
                 Forename = "Johnny",
                 Surname = "User",
                 Email = "juser@example.com",
-                IsActive = true
+                IsActive = true,
+                DateOfBirth = DateOnly.Parse("01/01/2001")
             }
         };
 
@@ -71,7 +73,8 @@ public class UserControllerTests
                 Forename = "Fred",
                 Surname = "IsInactive",
                 Email = "fisinactive@test.com",
-                IsActive = false
+                IsActive = false,
+                DateOfBirth = DateOnly.Parse("01/01/2001")
             }
         };
 
