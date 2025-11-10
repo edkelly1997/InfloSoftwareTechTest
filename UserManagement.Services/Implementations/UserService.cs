@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using UserManagement.Data;
 using UserManagement.Models;
 using UserManagement.Services.Domain.Interfaces;
@@ -17,33 +18,39 @@ public class UserService : IUserService
     /// </summary>
     /// <param name="isActive"></param>
     /// <returns></returns>
-    public IEnumerable<User> FilterByActive(bool isActive)
+    public async Task<IEnumerable<User>> FilterByActive(bool isActive)
     {
-        return _dataAccess.GetAll<User>().Where(u => u.IsActive == isActive);
+        var users = await _dataAccess.GetAll<User>();
+        return users.Where(u => u.IsActive == isActive).ToList();
     }
 
-    public IEnumerable<User> GetAll() => _dataAccess.GetAll<User>();
-
-    public IEnumerable<User> GetById(long id)
+    public async Task<IEnumerable<User>> GetAll()
     {
-        return _dataAccess.GetAll<User>().Where(u => u.Id == id);
+        var users = await _dataAccess.GetAll<User>();
+        return users.ToList();
     }
 
-    public void Create(User user)
+    public async Task<User?> GetById(long id)
+    {
+        var users = await _dataAccess.GetAll<User>();
+        return users.FirstOrDefault(u => u.Id == id);
+    }
+
+    public Task Create(User user)
     {
         if (user == null) throw new ArgumentNullException(nameof(user));
-        _dataAccess.Create(user);
+        return _dataAccess.Create(user);
     }
 
-    public void Update(User user)
+    public Task Update(User user)
     {
         if (user == null) throw new ArgumentNullException(nameof(user));
-        _dataAccess.Update(user);
+        return _dataAccess.Update(user);
     }
 
-    public void Delete(User user)
+    public Task Delete(User user)
     {
         if (user == null) throw new ArgumentNullException(nameof(user));
-        _dataAccess.Delete(user);
+        return _dataAccess.Delete(user);
     }
 }

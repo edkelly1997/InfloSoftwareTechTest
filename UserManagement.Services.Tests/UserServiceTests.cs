@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using UserManagement.Models;
 using UserManagement.Services.Domain.Implementations;
 using UserManagement.Services.Domain.Interfaces;
@@ -9,49 +10,49 @@ namespace UserManagement.Data.Tests;
 public class UserServiceTests
 {
     [Fact]
-    public void GetAll_WhenContextReturnsEntities_MustReturnSameEntities()
+    public async Task GetAll_WhenContextReturnsEntities_MustReturnSameEntities()
     {
         // Arrange: Initializes objects and sets the value of the data that is passed to the method under test.
         var service = CreateService();
         var users = SetupUsers();
 
         // Act: Invokes the method under test with the arranged parameters.
-        var result = service.GetAll();
+        var result = await service.GetAll();
 
         // Assert: Verifies that the action of the method under test behaves as expected.
-        result.Should().BeSameAs(users);
+        result.Should().BeEquivalentTo(users);
     }
 
     [Fact]
-    public void FilterByActive_WhenContextReturnsEntities_MustReturnActiveEntities()
+    public async Task FilterByActive_WhenContextReturnsEntities_MustReturnActiveEntities()
     {
         // Arrange: Initializes objects and sets the value of the data that is passed to the method under test.
         var service = CreateService();
         var users = SetupUsers().Where(u => u.IsActive).ToArray();
 
         // Act: Invokes the method under test with the arranged parameters.
-        var result = service.FilterByActive(true);
+        var result = await service.FilterByActive(true);
 
         // Assert: Verifies that the action of the method under test behaves as expected.
-        result.Should().BeSameAs(users);
+        result.Should().BeEquivalentTo(users);
     }
 
     [Fact]
-    public void FilterByInactive_WhenContextReturnsEntities_MustReturnInactiveEntities()
+    public async Task FilterByInactive_WhenContextReturnsEntities_MustReturnInactiveEntities()
     {
         // Arrange: Initializes objects and sets the value of the data that is passed to the method under test.
         var service = CreateService();
-        var users = SetupUsers().Where(u => u.IsActive).ToArray();
+        var users = SetupUsers().Where(u => !u.IsActive).ToArray();
 
         // Act: Invokes the method under test with the arranged parameters.
-        var result = service.FilterByActive(false);
+        var result = await service.FilterByActive(false);
 
         // Assert: Verifies that the action of the method under test behaves as expected.
-        result.Should().BeSameAs(users);
+        result.Should().BeEquivalentTo(users);
     }
 
     [Fact]
-    public void GetById_WhenIdExists_MustReturnMatchingUser()
+    public async Task GetById_WhenIdExists_MustReturnMatchingUser()
     {
         // Arrange: Initializes objects and sets the value of the data that is passed to the method under test.
         var service = CreateService();
@@ -59,29 +60,29 @@ public class UserServiceTests
         var expectedUser = users.First();
 
         // Act: Invokes the method under test with the arranged parameters.
-        var result = service.GetById(expectedUser.Id);
+        var result = await service.GetById(expectedUser.Id);
 
         // Assert: Verifies that the action of the method under test behaves as expected.
-        result.Should().ContainSingle()
-            .Which.Should().BeEquivalentTo(expectedUser);
+        result.Should().NotBeNull();
+        result.Should().BeEquivalentTo(expectedUser);
     }
 
     [Fact]
-    public void GetById_WhenIdDoesNotExist_MustReturnEmpty()
+    public async Task GetById_WhenIdDoesNotExist_MustReturnEmpty()
     {
         // Arrange: Initializes objects and sets the value of the data that is passed to the method under test.
         var service = CreateService();
         var nonExistentId = 999;
 
         // Act: Invokes the method under test with the arranged parameters.
-        var result = service.GetById(nonExistentId);
+        var result = await service.GetById(nonExistentId);
 
         // Assert: Verifies that the action of the method under test behaves as expected.
-        result.Should().BeEmpty();
+        result.Should().BeNull();
     }
 
     [Fact]
-    public void Create_WhenCalled_MustInvokeDataContextCreate()
+    public async Task Create_WhenCalled_MustInvokeDataContextCreate()
     {
         // Arrange: Initializes objects and sets the value of the data that is passed to the method under test.
         var user = new User
@@ -96,14 +97,14 @@ public class UserServiceTests
         var service = CreateService();
 
         // Act: Invokes the method under test with the arranged parameters.
-        service.Create(user);
+        await service.Create(user);
 
         // Assert: Verifies that the action of the method under test behaves as expected.
         _dataContext.Verify(dc => dc.Create(user), Times.Once);
     }
 
     [Fact]
-    public void Update_WhenCalled_MustInvokeDataContextUpdate()
+    public async Task Update_WhenCalled_MustInvokeDataContextUpdate()
     {
         // Arrange: Initializes objects and sets the value of the data that is passed to the method under test.
         var user = new User
@@ -118,14 +119,14 @@ public class UserServiceTests
         var service = CreateService();
 
         // Act: Invokes the method under test with the arranged parameters.
-        service.Update(user);
+        await service.Update(user);
 
         // Assert: Verifies that the action of the method under test behaves as expected.
         _dataContext.Verify(dc => dc.Update(user), Times.Once);
     }
 
     [Fact]
-    public void Delete_WhenCalled_MustInvokeDataContextDelete()
+    public async Task Delete_WhenCalled_MustInvokeDataContextDelete()
     {
         // Arrange: Initializes objects and sets the value of the data that is passed to the method under test.
         var user = new User
@@ -140,7 +141,7 @@ public class UserServiceTests
         var service = CreateService();
 
         // Act: Invokes the method under test with the arranged parameters.
-        service.Delete(user);
+        await service.Delete(user);
 
         // Assert: Verifies that the action of the method under test behaves as expected.
         _dataContext.Verify(dc => dc.Delete(user), Times.Once);
@@ -176,7 +177,7 @@ public class UserServiceTests
     private UserService CreateService()
     {
         var users = SetupUsers().AsQueryable();
-        _dataContext.Setup(s => s.GetAll<User>()).Returns(users);
+        _dataContext.Setup(s => s.GetAll<User>()).ReturnsAsync(users);
         return new UserService(_dataContext.Object);
     }
 

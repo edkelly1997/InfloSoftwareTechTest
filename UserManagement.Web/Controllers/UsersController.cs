@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using UserManagement.Models;
 using UserManagement.Services.Domain.Interfaces;
@@ -12,32 +13,34 @@ public class UsersController : Controller
     public UsersController(IUserService userService) => _userService = userService;
 
     [HttpGet]
-    public ViewResult List(bool allUsers = true, bool isActive = true)
+    public async Task<ViewResult> List(bool allUsers = true, bool isActive = true)
     {
         IEnumerable<UserListItemViewModel> items;
 
         if (allUsers)
         {
-            items = _userService.GetAll().Select(p => new UserListItemViewModel
+            var users = await _userService.GetAll();
+            items = users.Select(users => new UserListItemViewModel
             {
-                Id = p.Id,
-                Forename = p.Forename,
-                Surname = p.Surname,
-                Email = p.Email,
-                IsActive = p.IsActive,
-                DateOfBirth = p.DateOfBirth
+                Id = users.Id,
+                Forename = users.Forename,
+                Surname = users.Surname,
+                Email = users.Email,
+                IsActive = users.IsActive,
+                DateOfBirth = users.DateOfBirth
             });
         }
         else
         {
-            items = _userService.FilterByActive(isActive).Select(p => new UserListItemViewModel
+            var users = await _userService.FilterByActive(isActive);
+            items = users.Select(users => new UserListItemViewModel
             {
-                Id = p.Id,
-                Forename = p.Forename,
-                Surname = p.Surname,
-                Email = p.Email,
-                IsActive = p.IsActive,
-                DateOfBirth = p.DateOfBirth
+                Id = users.Id,
+                Forename = users.Forename,
+                Surname = users.Surname,
+                Email = users.Email,
+                IsActive = users.IsActive,
+                DateOfBirth = users.DateOfBirth
             });
         }
 
@@ -50,13 +53,13 @@ public class UsersController : Controller
     }
 
     [HttpGet]
-    public IActionResult AddEditUser(long id)
+    public async Task<IActionResult> AddEditUser(long id)
     {
         UserDetailsViewModel user = new UserDetailsViewModel();
 
         if (id != 0)
         {
-            var existingUser = _userService.GetById(id).FirstOrDefault();
+            var existingUser = await _userService.GetById(id);
             if (existingUser == null)
             {
                 return NotFound();
@@ -91,7 +94,7 @@ public class UsersController : Controller
     }
 
     [HttpPost]
-    public IActionResult AddEditUser(UserDetailsViewModel model)
+    public async Task<IActionResult> AddEditUser(UserDetailsViewModel model)
     {
         if (ModelState.IsValid)
         {
@@ -106,11 +109,11 @@ public class UsersController : Controller
             };
             if (model.Id == 0)
             {
-                _userService.Create(user);
+                await _userService.Create(user);
             }
             else
             {
-                _userService.Update(user);
+                await _userService.Update(user);
             }
 
             return RedirectToAction("List");
@@ -127,9 +130,9 @@ public class UsersController : Controller
     }
 
     [HttpGet]
-    public IActionResult ViewDeleteUser (long id, bool isDelete)
+    public async Task<IActionResult> ViewDeleteUser (long id, bool isDelete)
     {
-        var existingUser = _userService.GetById(id).FirstOrDefault();
+        var existingUser = await _userService.GetById(id);
         if (existingUser == null)
         {
             return NotFound();
@@ -153,15 +156,15 @@ public class UsersController : Controller
     }
 
     [HttpPost]
-    public IActionResult DeleteUser(UserDetailsReadOnlyViewModel model)
+    public async Task<IActionResult> DeleteUser(UserDetailsReadOnlyViewModel model)
     {
-        var existingUser = _userService.GetById(model.Id).FirstOrDefault();
+        var existingUser = await _userService.GetById(model.Id);
         if (existingUser == null)
         {
             return NotFound();
         }
 
-        _userService.Delete(existingUser);
+        await _userService.Delete(existingUser);
         return RedirectToAction("List");
     }
 }

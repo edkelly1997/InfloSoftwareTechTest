@@ -5,92 +5,97 @@ using UserManagement.WebMS.Controllers;
 using System.Linq;
 using System;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace UserManagement.Data.Tests;
 
 public class UserControllerTests
 {
     [Fact]
-    public void List_WhenServiceReturnsUsers_ModelMustContainUsers()
+    public async Task List_WhenServiceReturnsUsers_ModelMustContainUsers()
     {
         // Arrange: Initializes objects and sets the value of the data that is passed to the method under test.
         var controller = CreateController();
         var users = SetupUsers();
+        _userService.Setup(_userService => _userService.GetAll()).ReturnsAsync(users);
 
         // Act: Invokes the method under test with the arranged parameters.
-        var result = controller.List();
+        var result = await controller.List();
 
         // Assert: Verifies that the action of the method under test behaves as expected.
-        result.Model
-            .Should().BeOfType<UserListViewModel>()
-            .Which.Items.Should().BeEquivalentTo(users);
+        var model = (result as ViewResult)!.Model;
+        model.Should().BeOfType<UserListViewModel>();
+        ((UserListViewModel)model).Items.Should().BeEquivalentTo(users);
     }
 
     [Fact]
-    public void List_ActiveUsers_ModelMustContainOnlyActiveUsers()
+    public async Task List_ActiveUsers_ModelMustContainOnlyActiveUsers()
     {
         // Arrange: Initializes objects and sets the value of the data that is passed to the method under test.
         var controller = CreateController();
         var users = SetupUsers(allUsers: false, isActive: true);
+        _userService.Setup(_userService => _userService.FilterByActive(true)).ReturnsAsync(users);
 
         // Act: Invokes the method under test with the arranged parameters.
-        var result = controller.List(allUsers: false, isActive: true);
+        var result = await controller.List(allUsers: false, isActive: true);
 
-        result.Model
-            .Should().BeOfType<UserListViewModel>()
-            .Which.Items.Should().BeEquivalentTo(users);
+        var model = (result as ViewResult)!.Model;
+        model.Should().BeOfType<UserListViewModel>();
+        ((UserListViewModel)model).Items.Should().BeEquivalentTo(users);
     }
 
     [Fact]
-    public void List_InactiveUsers_ModelMustContainOnlyInactiveUsers()
+    public async Task List_InactiveUsers_ModelMustContainOnlyInactiveUsers()
     {
         // Arrange: Initializes objects and sets the value of the data that is passed to the method under test.
         var controller = CreateController();
         var users = SetupUsers(allUsers: false, isActive: false);
+        _userService.Setup(_userService => _userService.FilterByActive(false)).ReturnsAsync(users);
 
         // Act: Invokes the method under test with the arranged parameters.
-        var result = controller.List(allUsers: false, isActive: false);
+        var result = await controller.List(allUsers: false, isActive: false);
 
         // Assert: Verifies that the action of the method under test behaves as expected.
-        result.Model
-            .Should().BeOfType<UserListViewModel>()
-            .Which.Items.Should().BeEquivalentTo(users);
+        var model = (result as ViewResult)!.Model;
+        model.Should().BeOfType<UserListViewModel>();
+        ((UserListViewModel)model).Items.Should().BeEquivalentTo(users);
     }
 
     [Fact]
-    public void AddEditUser_Get_WithValidId_ReturnsUserView()
+    public async Task AddEditUser_Get_WithValidId_ReturnsUserView()
     {
         // Arrange: Initializes objects and sets the value of the data that is passed to the method under test.
         var controller = CreateController();
         var user = SetupUsers().First();
-        _userService.Setup(s => s.GetById(user.Id)).Returns(new[] { user });
+        _userService.Setup(s => s.GetById(user.Id)).ReturnsAsync(user);
 
         // Act: Invokes the method under test with the arranged parameters.
-        var result = controller.AddEditUser(user.Id);
+        var result = await controller.AddEditUser(user.Id);
 
         // Assert: Verifies that the action of the method under test behaves as expected.
-        result.Should().BeOfType<ViewResult>();
-        var model = (result as ViewResult)!.Model;
+        var viewResult = result as ViewResult;
+        viewResult.Should().NotBeNull();
+        var model = viewResult!.Model;
         model.Should().BeOfType<UserDetailsViewModel>();
         ((UserDetailsViewModel)model).Id.Should().Be(user.Id);
     }
 
     [Fact]
-    public void AddEditUser_Get_WithInvalidId_ReturnsNotFound()
+    public async Task AddEditUser_Get_WithInvalidId_ReturnsNotFound()
     {
         // Arrange: Initializes objects and sets the value of the data that is passed to the method under test.
         var controller = CreateController();
-        _userService.Setup(s => s.GetById(999)).Returns(Enumerable.Empty<User>());
+        _userService.Setup(s => s.GetById(999)).ReturnsAsync((User?)null);
 
         // Act: Invokes the method under test with the arranged parameters.
-        var result = controller.AddEditUser(999);
+        var result = await controller.AddEditUser(999);
 
         // Assert: Verifies that the action of the method under test behaves as expected.
         result.Should().BeOfType<NotFoundResult>();
     }
 
     [Fact]
-    public void AddEditUser_Post_WithNewUser_CallsCreateAndRedirects()
+    public async Task AddEditUser_Post_WithNewUser_CallsCreateAndRedirects()
     {
         // Arrange: Initializes objects and sets the value of the data that is passed to the method under test.
         var controller = CreateController();
@@ -106,7 +111,7 @@ public class UserControllerTests
         };
 
         // Act: Invokes the method under test with the arranged parameters.
-        var result = controller.AddEditUser(model);
+        var result = await controller.AddEditUser(model);
 
         // Assert: Verifies that the action of the method under test behaves as expected.
         _userService.Verify(s => s.Create(It.Is<User>(u => u.Forename == user.Forename)), Times.Once);
@@ -114,7 +119,7 @@ public class UserControllerTests
     }
 
     [Fact]
-    public void AddEditUser_Post_WithExistingUser_CallsUpdateAndRedirects()
+    public async Task AddEditUser_Post_WithExistingUser_CallsUpdateAndRedirects()
     {
         // Arrange: Initializes objects and sets the value of the data that is passed to the method under test.
         var controller = CreateController();
@@ -130,7 +135,7 @@ public class UserControllerTests
         };
 
         // Act: Invokes the method under test with the arranged parameters.
-        var result = controller.AddEditUser(model);
+        var result = await controller.AddEditUser(model);
 
         // Assert: Verifies that the action of the method under test behaves as expected.
         _userService.Verify(s => s.Update(It.Is<User>(u => u.Id == user.Id)), Times.Once);
@@ -138,45 +143,46 @@ public class UserControllerTests
     }
 
     [Fact]
-    public void ViewDeleteUser_Get_WithValidId_ReturnsViewWithModel()
+    public async Task ViewDeleteUser_Get_WithValidId_ReturnsViewWithModel()
     {
         // Arrange: Initializes objects and sets the value of the data that is passed to the method under test.
         var controller = CreateController();
         var user = SetupUsers().Last();
-        _userService.Setup(s => s.GetById(user.Id)).Returns(new[] { user });
+        _userService.Setup(s => s.GetById(user.Id)).ReturnsAsync(user);
 
         // Act: Invokes the method under test with the arranged parameters.
-        var result = controller.ViewDeleteUser(user.Id, true);
+        var result = await controller.ViewDeleteUser(user.Id, true);
 
         // Assert: Verifies that the action of the method under test behaves as expected.
-        result.Should().BeOfType<ViewResult>();
-        var model = (result as ViewResult)!.Model;
+        var viewResult = result as ViewResult;
+        viewResult.Should().NotBeNull();
+        var model = viewResult!.Model;
         model.Should().BeOfType<UserDetailsReadOnlyViewModel>();
         ((UserDetailsReadOnlyViewModel)model).Id.Should().Be(user.Id);
         ((UserDetailsReadOnlyViewModel)model).IsDelete.Should().BeTrue();
     }
 
     [Fact]
-    public void ViewDeleteUser_Get_WithInvalidId_ReturnsNotFound()
+    public async Task ViewDeleteUser_Get_WithInvalidId_ReturnsNotFound()
     {
         // Arrange: Initializes objects and sets the value of the data that is passed to the method under test.
         var controller = CreateController();
-        _userService.Setup(s => s.GetById(999)).Returns(Enumerable.Empty<User>());
+        _userService.Setup(s => s.GetById(999)).ReturnsAsync((User?)null);
 
         // Act: Invokes the method under test with the arranged parameters.
-        var result = controller.ViewDeleteUser(999, true);
+        var result = await controller.ViewDeleteUser(999, true);
 
         // Assert: Verifies that the action of the method under test behaves as expected.
         result.Should().BeOfType<NotFoundResult>();
     }
 
     [Fact]
-    public void DeleteUser_Post_CallsDeleteAndRedirects()
+    public async Task DeleteUser_Post_CallsDeleteAndRedirects()
     {
         // Arrange: Initializes objects and sets the value of the data that is passed to the method under test.
         var controller = CreateController();
         var user = SetupUsers().Last();
-        _userService.Setup(s => s.GetById(user.Id)).Returns(new[] { user });
+        _userService.Setup(s => s.GetById(user.Id)).ReturnsAsync(user);
         var model = new UserDetailsReadOnlyViewModel
         {
             Id = user.Id,
@@ -189,7 +195,7 @@ public class UserControllerTests
         };
 
         // Act: Invokes the method under test with the arranged parameters.
-        var result = controller.DeleteUser(model);
+        var result = await controller.DeleteUser(model);
 
         // Assert: Verifies that the action of the method under test behaves as expected.
         _userService.Verify(s => s.Delete(It.Is<User>(u => u.Id == user.Id)), Times.Once);
@@ -226,19 +232,6 @@ public class UserControllerTests
         };
 
         User[] users = allUsers ? ActiveUser.Concat(InActiveUser).ToArray() : isActive ? ActiveUser : InActiveUser;
-
-        if (allUsers)
-        {
-            _userService
-                .Setup(s => s.GetAll())
-                .Returns(users);
-        }
-        else
-        {
-            _userService
-                .Setup(s => s.FilterByActive(isActive))
-                .Returns(users);
-        }
 
         return users;
     }
