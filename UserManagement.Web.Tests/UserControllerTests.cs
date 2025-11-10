@@ -133,6 +133,7 @@ public class UserControllerTests
             IsActive = user.IsActive,
             DateOfBirth = user.DateOfBirth
         };
+        _userService.Setup(s => s.GetById(user.Id)).ReturnsAsync(user);
 
         // Act: Invokes the method under test with the arranged parameters.
         var result = await controller.AddEditUser(model);
@@ -237,5 +238,6 @@ public class UserControllerTests
     }
 
     private readonly Mock<IUserService> _userService = new();
-    private UsersController CreateController() => new(_userService.Object);
+    private readonly Mock<IUserAuditLogService> _userAuditLogService = new();
+    private UsersController CreateController() => new(_userService.Object, _userAuditLogService.Object);
 }

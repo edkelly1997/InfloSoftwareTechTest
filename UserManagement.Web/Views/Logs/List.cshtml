@@ -1,0 +1,48 @@
+﻿@model UserManagement.Web.Models.Users.UserAuditLogListViewModel
+
+<h2>User Audit Logs</h2>
+
+<form asp-controller="Logs" asp-action="List" method="get" class="mb-3 d-flex align-items-center">
+    <input type="number" name="userId" class="form-control me-2" placeholder="Enter User Id" required />
+    <input type="hidden" name="allLogs" value="false" />
+    <button type="submit" class="btn btn-primary">Filter</button>
+</form>
+
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>User Id</th>
+                <th>Full Name</th>
+                <th>Change Type</th>
+                <th style="width: 1px;"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Items)
+            {
+                <tr>
+                    <td>
+                        @item.Id
+                    </td>
+                    <td>
+                        @item.UserId
+                    </td>
+                    <td>
+                        @item.UserFullName
+                    </td>
+                    <td>
+                        @item.ChangeType
+                    </td>
+                    <td>
+                        <div class="dropdown">
+                            <a asp-controller="Logs" asp-action="ViewAuditLog" asp-route-id="@item.Id" class="dropdown-item">View</a>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+

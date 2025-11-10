@@ -31,6 +31,7 @@ public class DataContext : DbContext, IDataContext
     }
 
     public DbSet<User>? Users { get; set; }
+    public DbSet<UserAuditLog>? AuditLogs { get; set; }
 
     public async Task<IQueryable<TEntity>> GetAll<TEntity>() where TEntity : class
     {

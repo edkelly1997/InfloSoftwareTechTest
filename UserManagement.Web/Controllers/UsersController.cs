@@ -1,16 +1,23 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using UserManagement.Models;
 using UserManagement.Services.Domain.Interfaces;
 using UserManagement.Web.Models.Users;
+using System.Text.Json;
 
 namespace UserManagement.WebMS.Controllers;
 
 public class UsersController : Controller
 {
     private readonly IUserService _userService;
-    public UsersController(IUserService userService) => _userService = userService;
+    private readonly IUserAuditLogService _userAuditLogService;
+    public UsersController(IUserService userService, IUserAuditLogService userAuditLogService)
+    {
+        _userService = userService;
+        _userAuditLogService = userAuditLogService;
+    }
 
     [HttpGet]
     public async Task<ViewResult> List(bool allUsers = true, bool isActive = true)
@@ -107,14 +114,66 @@ public class UsersController : Controller
                 IsActive = model.IsActive,
                 DateOfBirth = model.DateOfBirth
             };
+
+            var auditLog = new UserAuditLog();
+
             if (model.Id == 0)
             {
                 await _userService.Create(user);
+                auditLog = new UserAuditLog
+                {
+                    UserId = user.Id,
+                    ChangeType = "User Created",
+                    UserFullName = $"{user.Forename} {user.Surname}",
+                    ChangedAt = DateTime.UtcNow,
+                    ChangedData = JsonSerializer.Serialize(new
+                    {
+                        OldDetails = "N/A",
+                        NewDetails = user
+                    })
+                };
             }
             else
             {
-                await _userService.Update(user);
+                var oldUserDetails = await _userService.GetById(model.Id);
+
+                if (oldUserDetails == null)
+                {
+                    return NotFound();
+                }
+
+                var oldDetailsForAudit = new User
+                {
+                    Id = oldUserDetails.Id,
+                    Forename = oldUserDetails.Forename,
+                    Surname = oldUserDetails.Surname,
+                    Email = oldUserDetails.Email,
+                    IsActive = oldUserDetails.IsActive,
+                    DateOfBirth = oldUserDetails.DateOfBirth
+                };
+
+                oldUserDetails.Forename = model.Forename!;
+                oldUserDetails.Surname = model.Surname!;
+                oldUserDetails.Email = model.Email!;
+                oldUserDetails.IsActive = model.IsActive;
+                oldUserDetails.DateOfBirth = model.DateOfBirth;
+
+                await _userService.Update(oldUserDetails);
+                auditLog = new UserAuditLog
+                {
+                    UserId = user.Id,
+                    ChangeType = "User Updated",
+                    UserFullName = $"{user.Forename} {user.Surname}",
+                    ChangedAt = DateTime.UtcNow,
+                    ChangedData = JsonSerializer.Serialize(new
+                    {
+                        OldDetails = oldDetailsForAudit,
+                        NewDetails = user
+                    })
+                };
             }
+
+            await _userAuditLogService.Create(auditLog);
 
             return RedirectToAction("List");
         }

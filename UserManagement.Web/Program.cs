@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using UserManagement.Data;
+using UserManagement.Services.Domain.Implementations;
+using UserManagement.Services.Domain.Interfaces;
 using Westwind.AspNetCore.Markdown;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +15,10 @@ builder.Services
     .AddDomainServices()
     .AddMarkdown()
     .AddControllersWithViews();
+
+builder.Services.AddScoped<IDataContext, DataContext>();
+builder.Services.AddScoped<IUserAuditLogService, UserAuditLogService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));

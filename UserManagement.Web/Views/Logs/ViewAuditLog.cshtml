@@ -1,0 +1,41 @@
+﻿@model UserManagement.Web.Models.Users.UserAuditLogViewModel
+
+<h2>View Audit Log </h2>
+
+<div>
+    <div class="row">
+        <div class="col-10">
+            <div class="border p-3">
+                <input asp-for="@Model.Id" type="hidden" value="@Model.Id" />
+                <div class="form-floating py-2 col-12">
+                    <input asp-for="@Model.UserId" disabled class="form-control border-0 shadow" value="@Model.UserId" />
+                    <label class="ms-2">User Id</label>
+                </div>
+                <div class="form-floating py-2 col-12">
+                    <input asp-for="@Model.UserFullName" disabled class="form-control border-0 shadow" value="@Model.UserFullName" />
+                    <label class="ms-2">Full Name</label>
+                </div>
+                <div class="form-floating py-2 col-12">
+                    <input asp-for="@Model.ChangeType" disabled class="form-control border-0 shadow" value="@Model.ChangeType" />
+                    <label class="ms-2">Change Type</label>
+                </div>
+                <div class="form-floating py-2 col-12">
+                    <input asp-for="@Model.OldDetails" disabled class="form-control border-0 shadow" value="@Model.OldDetails" />
+                    <label class="ms-2">Old Details</label>
+                </div>
+                <div class="form-floating py-2 col-12">
+                    <input asp-for="@Model.NewDetails" disabled class="form-control border-0 shadow" value="@Model.NewDetails">
+                    <label class="ms-2">New Details</label>
+                </div>
+                <div class="row pt-2">
+                    <div class="col-6 col-md-3">
+                        <a asp-controller="Logs" asp-action="List" class="btn btn-outline-secondary border form-control">
+                            Return
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
